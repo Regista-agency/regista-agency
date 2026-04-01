@@ -2,13 +2,12 @@
 
 # Stage 1: Base
 FROM node:20-alpine AS base
-RUN corepack enable && corepack prepare yarn@stable --activate
 WORKDIR /app
 
 # Stage 2: Dependencies
 FROM base AS deps
-COPY package.json yarn.lock* ./
-RUN yarn install --frozen-lockfile
+COPY package*.json ./
+RUN npm ci
 
 # Stage 3: Development
 FROM base AS development
@@ -16,7 +15,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 EXPOSE 3000
-CMD ["yarn", "dev"]
+CMD ["npm", "run", "dev"]
 
 # Stage 4: Builder (for production)
 FROM base AS builder
@@ -30,7 +29,7 @@ ARG NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 
-RUN yarn build
+RUN npm run build
 
 # Stage 5: Production
 FROM base AS production

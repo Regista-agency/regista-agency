@@ -27,7 +27,7 @@ make install
 
 # Ou manuellement
 docker-compose up -d --build
-docker-compose exec nextjs yarn seed
+docker-compose exec nextjs npm run seed
 ```
 
 L'application sera accessible sur:
@@ -41,7 +41,7 @@ L'application sera accessible sur:
 Les dépendances sont déjà installées. Pour réinstaller :
 
 ```bash
-yarn install
+npm install
 ```
 
 Assurez-vous que MongoDB est installé et en cours d'exécution:
@@ -58,7 +58,7 @@ mongod --dbpath /path/to/data
 Pour générer les données mockées (clients, automatisations, métriques) :
 
 ```bash
-yarn seed
+npm run seed
 ```
 
 ### Comptes de test
@@ -85,7 +85,7 @@ Après le seeding, utilisez ces identifiants :
 ### Mode développement
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 L'application sera accessible sur http://localhost:3000
@@ -93,8 +93,8 @@ L'application sera accessible sur http://localhost:3000
 ### Mode production
 
 ```bash
-yarn build
-yarn start
+npm run build
+npm start
 ```
 
 ## 📁 Structure du projet
@@ -255,23 +255,23 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ## 📝 Scripts disponibles
 
 ```bash
-yarn dev      # Démarrer en mode développement
-yarn build    # Build de production
-yarn start    # Démarrer en mode production
-yarn lint     # Linter
-yarn seed     # Seed la base de données
+npm run dev      # Démarrer en mode développement
+npm run build    # Build de production
+npm start        # Démarrer en mode production
+npm run lint     # Linter
+npm run seed     # Seed la base de données
 ```
 
 ## 🚦 Workflow de développement
 
 1. **Seeder la base de données**
    ```bash
-   yarn seed
+   npm run seed
    ```
 
 2. **Démarrer le serveur de développement**
    ```bash
-   yarn dev
+   npm run dev
    ```
 
 3. **Accéder à l'application**

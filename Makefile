@@ -30,7 +30,7 @@ logs-mongo: ## Logs MongoDB uniquement
 	$(COMPOSE) logs -f mongodb
 
 seed: ## Seeder la base de données
-	$(COMPOSE) exec nextjs yarn seed
+	$(COMPOSE) exec nextjs npm run seed
 
 clean: ## Arrêter et supprimer volumes
 	$(COMPOSE) down -v
@@ -64,7 +64,7 @@ prod-logs: ## Logs production
 	$(COMPOSE_PROD) logs -f
 
 prod-seed: ## Seed production
-	$(COMPOSE_PROD) exec nextjs yarn seed
+	$(COMPOSE_PROD) exec nextjs npm run seed
 
 # Maintenance
 status: ## Status des containers
@@ -99,7 +99,7 @@ install: ## Premier démarrage (build + seed)
 	$(COMPOSE) up -d --build
 	@echo "Waiting for services to be ready..."
 	@sleep 10
-	$(COMPOSE) exec nextjs yarn seed
+	$(COMPOSE) exec nextjs npm run seed
 	@echo ""
 	@echo "✅ Installation terminée!"
 	@echo "📝 Connectez-vous avec: client1@example.com / password123"

@@ -53,7 +53,7 @@ fi
 # Seed database
 echo ""
 echo "🌱 Seeding de la base de données..."
-docker-compose exec -T nextjs yarn seed
+docker-compose exec -T nextjs npm run seed
 
 # Test the application
 echo ""

@@ -12,7 +12,7 @@ make install
 # Méthode 3: Docker Compose manuel
 docker-compose up -d --build
 sleep 10
-docker-compose exec nextjs yarn seed
+docker-compose exec nextjs npm run seed
 ```
 
 ## Commandes essentielles
@@ -72,7 +72,7 @@ make mongo-shell
 
 ```bash
 # Seeder
-docker-compose exec nextjs yarn seed
+docker-compose exec nextjs npm run seed
 # ou
 make seed
 
@@ -118,7 +118,7 @@ docker-compose down && docker-compose up -d
 ```bash
 docker-compose down -v
 docker-compose up -d --build
-docker-compose exec nextjs yarn seed
+docker-compose exec nextjs npm run seed
 ```
 
 ### Nettoyer tout
