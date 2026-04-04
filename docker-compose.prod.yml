@@ -1,22 +1,19 @@
-version: '3.8'
-
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: regista-mongodb-prod
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: regista-postgres-prod
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
-      MONGO_INITDB_DATABASE: regista-agency
+      POSTGRES_USER: ${POSTGRES_USER:-regista}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: regista_agency
     volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - regista-network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-regista} -d regista_agency"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,7 +31,7 @@ services:
     restart: always
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=${MONGODB_URI}
+      - DATABASE_URL=${DATABASE_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME}
@@ -42,15 +39,13 @@ services:
     ports:
       - '3000:3000'
     depends_on:
-      mongodb:
+      postgres:
         condition: service_healthy
     networks:
       - regista-network
 
 volumes:
-  mongodb_data:
-    driver: local
-  mongodb_config:
+  postgres_data:
     driver: local
 
 networks:

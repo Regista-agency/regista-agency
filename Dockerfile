@@ -7,6 +7,7 @@ WORKDIR /app
 # Stage 2: Dependencies
 FROM base AS deps
 COPY package*.json ./
+COPY prisma ./prisma/
 RUN npm ci
 
 # Stage 3: Development
