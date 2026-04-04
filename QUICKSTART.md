@@ -1,4 +1,4 @@
-# 🚀 Quick Start avec Docker
+# 🚀 Quick Start avec Docker (PostgreSQL + Prisma)
 
 ## Installation rapide
 
@@ -11,7 +11,9 @@ make install
 
 # Méthode 3: Docker Compose manuel
 docker-compose up -d --build
-sleep 10
+sleep 15
+docker-compose exec nextjs npx prisma db push
+docker-compose exec nextjs npx prisma generate
 docker-compose exec nextjs npm run seed
 ```
 
@@ -45,13 +47,12 @@ docker-compose logs -f
 # Logs Next.js uniquement
 docker-compose logs -f nextjs
 
-# Logs MongoDB uniquement
-docker-compose logs -f mongodb
+# Logs PostgreSQL uniquement
+docker-compose logs -f postgres
 
 # Avec Make
 make logs
 make logs-nextjs
-make logs-mongo
 ```
 
 ### Accès aux containers
@@ -62,10 +63,15 @@ docker-compose exec nextjs sh
 # ou
 make shell
 
-# MongoDB shell
-docker-compose exec mongodb mongosh -u admin -p admin123 regista-agency
+# PostgreSQL shell
+docker-compose exec postgres psql -U regista -d regista_agency
 # ou
 make mongo-shell
+
+# Prisma Studio (interface graphique)
+docker-compose exec nextjs npx prisma studio
+# ou
+make db-studio
 ```
 
 ### Base de données
@@ -76,18 +82,29 @@ docker-compose exec nextjs npm run seed
 # ou
 make seed
 
+# Push schema Prisma
+docker-compose exec nextjs npx prisma db push
+
+# Prisma Studio
+docker-compose exec nextjs npx prisma studio
+
 # Backup
 make backup
 
 # Restore
-make restore BACKUP=./backups/backup-20240101-120000
+make restore BACKUP=./backups/backup-20240101-120000.sql
 ```
 
 ## URLs après démarrage
 
 - **Application:** http://localhost:3000
-- **MongoDB Express:** http://localhost:8081
-- **MongoDB:** mongodb://admin:admin123@localhost:27017/regista-agency
+- **pgAdmin:** http://localhost:5050
+  - Email: admin@regista-agency.fr
+  - Password: admin123
+- **PostgreSQL:** localhost:5432
+  - User: regista
+  - Password: regista123
+  - Database: regista_agency
 
 ## Comptes de test
 
@@ -109,6 +126,7 @@ Password: password123
 ```bash
 # Trouver et tuer le processus
 lsof -ti:3000 | xargs kill -9
+lsof -ti:5432 | xargs kill -9
 # ou
 docker-compose down && docker-compose up -d
 ```
@@ -118,6 +136,20 @@ docker-compose down && docker-compose up -d
 ```bash
 docker-compose down -v
 docker-compose up -d --build
+sleep 15
+docker-compose exec nextjs npx prisma db push
+docker-compose exec nextjs npx prisma generate
+docker-compose exec nextjs npm run seed
+```
+
+### Problème Prisma
+
+```bash
+# Régénérer le client
+docker-compose exec nextjs npx prisma generate
+
+# Réinitialiser la base
+docker-compose exec nextjs npx prisma migrate reset
 docker-compose exec nextjs npm run seed
 ```
 
@@ -168,13 +200,34 @@ docker-compose ps
 Créer un fichier `.env.production` pour la production:
 
 ```bash
-MONGO_ROOT_USERNAME=admin
-MONGO_ROOT_PASSWORD=votre-password-securise
-MONGODB_URI=mongodb://admin:password@mongodb:27017/regista-agency?authSource=admin
+# PostgreSQL
+DATABASE_URL=postgresql://regista:secure-password@postgres:5432/regista_agency
+
+# NextAuth
 NEXTAUTH_SECRET=$(openssl rand -base64 32)
 NEXTAUTH_URL=https://demo.regista-agency.fr
+
+# App
 NEXT_PUBLIC_APP_NAME=Regista Agency
 NEXT_PUBLIC_APP_URL=https://demo.regista-agency.fr
+```
+
+## Prisma
+
+### Commandes utiles
+
+```bash
+# Studio (interface graphique)
+docker-compose exec nextjs npx prisma studio
+
+# Migration
+docker-compose exec nextjs npx prisma migrate dev --name description
+
+# Reset database
+docker-compose exec nextjs npx prisma migrate reset
+
+# Voir le schéma
+docker-compose exec nextjs npx prisma format
 ```
 
 ## Aide

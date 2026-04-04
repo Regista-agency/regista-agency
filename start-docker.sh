@@ -2,8 +2,8 @@
 
 set -e
 
-echo "🚀 Regista Agency - Docker Setup"
-echo "================================"
+echo "🚀 Regista Agency - Docker Setup (PostgreSQL + Prisma)"
+echo "======================================================"
 echo ""
 
 # Check if Docker is running
@@ -31,14 +31,14 @@ docker-compose up -d --build
 
 # Wait for services
 echo "⏳ Attente du démarrage des services..."
-sleep 10
+sleep 15
 
 # Check if services are running
-if [ "$(docker-compose ps -q mongodb)" ]; then
-    echo "✅ MongoDB démarré"
+if [ "$(docker-compose ps -q postgres)" ]; then
+    echo "✅ PostgreSQL démarré"
 else
-    echo "❌ Problème avec MongoDB"
-    docker-compose logs mongodb
+    echo "❌ Problème avec PostgreSQL"
+    docker-compose logs postgres
     exit 1
 fi
 
@@ -50,9 +50,26 @@ else
     exit 1
 fi
 
+# Wait for PostgreSQL to be ready
+echo ""
+echo "⏳ Attente de PostgreSQL..."
+sleep 5
+
+# Push Prisma schema
+echo ""
+echo "📊 Push du schéma Prisma..."
+docker-compose exec -T nextjs npx prisma db push --skip-generate || {
+    echo "⚠️  Erreur lors du push du schéma, tentative de migration..."
+    docker-compose exec -T nextjs npx prisma migrate deploy || true
+}
+
+# Generate Prisma Client
+echo "🔧 Génération du Prisma Client..."
+docker-compose exec -T nextjs npx prisma generate
+
 # Seed database
 echo ""
-echo "🌱 Seeding de la base de données..."
+echo "🌱 Seeding de la base de données PostgreSQL..."
 docker-compose exec -T nextjs npm run seed
 
 # Test the application
@@ -67,7 +84,7 @@ else
 fi
 
 echo ""
-echo "================================"
+echo "======================================================"
 echo "✨ Installation terminée!"
 echo ""
 echo "📝 Comptes de test:"
@@ -77,14 +94,24 @@ echo "   - admin@regista-agency.fr / password123"
 echo ""
 echo "🌐 URLs:"
 echo "   - Application: http://localhost:3000"
-echo "   - MongoDB Express: http://localhost:8081"
+echo "   - pgAdmin: http://localhost:5050"
+echo "     Email: admin@regista-agency.fr"
+echo "     Password: admin123"
+echo ""
+echo "🗄️  PostgreSQL:"
+echo "   - Host: localhost"
+echo "   - Port: 5432"
+echo "   - User: regista"
+echo "   - Password: regista123"
+echo "   - Database: regista_agency"
 echo ""
 echo "📚 Commandes utiles:"
 echo "   - make logs          # Voir les logs"
 echo "   - make down          # Arrêter"
 echo "   - make restart       # Redémarrer"
 echo "   - make shell         # Shell Next.js"
-echo "   - make mongo-shell   # Shell MongoDB"
+echo "   - docker-compose exec postgres psql -U regista -d regista_agency"
+echo "   - docker-compose exec nextjs npx prisma studio"
 echo "   - make help          # Toutes les commandes"
 echo ""
-echo "================================"
+echo "======================================================"

@@ -6,7 +6,7 @@ Application SaaS pour le suivi des automatisations métier développée avec Nex
 
 - **Framework:** Next.js 14+ avec App Router
 - **Langage:** TypeScript
-- **Base de données:** MongoDB avec Mongoose
+- **Base de données:** PostgreSQL 15 avec Prisma ORM
 - **Authentification:** NextAuth.js v5
 - **UI:** Tailwind CSS v4 + shadcn/ui components
 - **Charts:** Chart.js avec react-chartjs-2
@@ -32,7 +32,7 @@ docker-compose exec nextjs npm run seed
 
 L'application sera accessible sur:
 - **App:** http://localhost:3000
-- **MongoDB Express:** http://localhost:8081
+- **pgAdmin:** http://localhost:5050
 
 📚 **Plus d'infos:** Voir [README.docker.md](./README.docker.md) et [QUICKSTART.md](./QUICKSTART.md)
 
@@ -44,11 +44,11 @@ Les dépendances sont déjà installées. Pour réinstaller :
 npm install
 ```
 
-Assurez-vous que MongoDB est installé et en cours d'exécution:
+Assurez-vous que PostgreSQL est installé et en cours d'exécution:
 
 ```bash
-# Démarrer MongoDB (si installé localement)
-mongod --dbpath /path/to/data
+# Démarrer PostgreSQL (si installé localement)
+sudo service postgresql start
 ```
 
 ## 🗄️ Base de données

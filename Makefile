@@ -46,8 +46,11 @@ restart: ## Redémarrer les services
 shell: ## Shell dans le container Next.js
 	$(COMPOSE) exec nextjs sh
 
-mongo-shell: ## Shell MongoDB
-	$(COMPOSE) exec mongodb mongosh -u admin -p admin123 regista-agency
+mongo-shell: ## Shell PostgreSQL
+	$(COMPOSE) exec postgres psql -U regista -d regista_agency
+
+db-studio: ## Ouvrir Prisma Studio
+	$(COMPOSE) exec nextjs npx prisma studio
 
 # Production
 prod-build: ## Build pour production
@@ -73,20 +76,14 @@ status: ## Status des containers
 stats: ## Statistiques CPU/Mémoire
 	docker stats --no-stream
 
-backup: ## Backup MongoDB
+backup: ## Backup PostgreSQL
 	@mkdir -p ./backups
-	$(COMPOSE) exec mongodb mongodump \
-		--uri="mongodb://admin:admin123@localhost:27017/regista-agency?authSource=admin" \
-		--out=/tmp/backup
-	docker cp regista-mongodb:/tmp/backup ./backups/backup-$(shell date +%Y%m%d-%H%M%S)
+	$(COMPOSE) exec postgres pg_dump -U regista regista_agency > ./backups/backup-$(shell date +%Y%m%d-%H%M%S).sql
 	@echo "✅ Backup créé dans ./backups/"
 
 restore: ## Restore dernier backup
-	@if [ -z "$(BACKUP)" ]; then echo "Usage: make restore BACKUP=./backups/backup-YYYYMMDD-HHMMSS"; exit 1; fi
-	docker cp $(BACKUP) regista-mongodb:/tmp/restore
-	$(COMPOSE) exec mongodb mongorestore \
-		--uri="mongodb://admin:admin123@localhost:27017/regista-agency?authSource=admin" \
-		/tmp/restore/regista-agency
+	@if [ -z "$(BACKUP)" ]; then echo "Usage: make restore BACKUP=./backups/backup-YYYYMMDD-HHMMSS.sql"; exit 1; fi
+	$(COMPOSE) exec -T postgres psql -U regista -d regista_agency < $(BACKUP)
 	@echo "✅ Backup restauré"
 
 test: ## Tester l'application
