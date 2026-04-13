@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
       data: {
         email,
         password: hashedPassword,
-        role: 'client'
+        role: 'client',
+        clientId: user.clientId ?? undefined,
       },
     });
 
