@@ -138,7 +138,7 @@ async function main() {
       clientId: client1.id,
       templateId: createdTemplates[0].id,
       status: 'active',
-      settings: createdTemplates[0].defaultSettings,
+      settings: createdTemplates[0].defaultSettings ?? {},
     },
   });
 
@@ -149,7 +149,7 @@ async function main() {
       clientId: client1.id,
       templateId: createdTemplates[1].id,
       status: 'active',
-      settings: createdTemplates[1].defaultSettings,
+      settings: createdTemplates[1].defaultSettings ?? {},
     },
   });
 
@@ -160,7 +160,7 @@ async function main() {
       clientId: client1.id,
       templateId: createdTemplates[2].id,
       status: 'inactive',
-      settings: createdTemplates[2].defaultSettings,
+      settings: createdTemplates[2].defaultSettings ?? {},
     },
   });
 
@@ -171,7 +171,7 @@ async function main() {
       clientId: client2.id,
       templateId: createdTemplates[3].id,
       status: 'active',
-      settings: createdTemplates[3].defaultSettings,
+      settings: createdTemplates[3].defaultSettings ?? {},
     },
   });
 
@@ -182,7 +182,7 @@ async function main() {
       clientId: client2.id,
       templateId: createdTemplates[4].id,
       status: 'active',
-      settings: createdTemplates[4].defaultSettings,
+      settings: createdTemplates[4].defaultSettings ?? {},
     },
   });
 
