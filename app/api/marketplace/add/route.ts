@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         clientId: session.user.clientId!,
         templateId: template.id,
         status: 'inactive',
-        settings: template.defaultSettings,
+        settings: template.defaultSettings ?? {},
       },
     });
 
