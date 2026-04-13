@@ -48,7 +48,7 @@ export default async function DashboardPage() {
         _id: automation.id,
         name: automation.name,
         description: automation.description,
-        status: automation.status,
+        status: automation.status as 'active' | 'inactive',
         stats: { emailsSent },
       };
     })
