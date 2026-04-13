@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         role: 'client',
-        clientId: client.id,
+        clientId: user.clientId ?? undefined,
       },
     });
 
