@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "Regista Agency - Dashboard Client",
+  title: "Regista Agency — Dashboard Client",
   description: "Plateforme de suivi des automatisations pour clients Regista Agency",
 };
 
@@ -19,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={inter.className}>{children}</body>
+      <body className={`${manrope.variable} font-sans antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
