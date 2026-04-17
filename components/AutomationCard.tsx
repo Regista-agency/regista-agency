@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn, formatNumber } from '@/lib/utils';
-import { Activity } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 interface AutomationCardProps {
   automation: {
@@ -20,54 +19,56 @@ interface AutomationCardProps {
 export function AutomationCard({ automation, stats }: AutomationCardProps) {
   return (
     <Link href={`/dashboard/automations/${automation._id}`}>
-      <Card className="transition-all hover:shadow-md">
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <Activity className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">{automation.name}</CardTitle>
-                <div className="mt-1 flex items-center space-x-2">
-                  <span
-                    className={cn(
-                      'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium',
-                      automation.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        'mr-1.5 h-1.5 w-1.5 rounded-full',
-                        automation.status === 'active'
-                          ? 'bg-green-500'
-                          : 'bg-gray-500'
-                      )}
-                    />
-                    {automation.status === 'active' ? 'Actif' : 'Inactif'}
-                  </span>
-                </div>
-              </div>
+      <div className="group rounded-lg border border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-sm">
+
+        {/* Header */}
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent">
+              <Zap className="h-4 w-4 text-primary" strokeWidth={2} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground leading-tight">
+                {automation.name}
+              </h3>
+              <span
+                className={cn(
+                  'mt-1 inline-flex items-center gap-1 label-caps',
+                  automation.status === 'active'
+                    ? 'text-emerald-600'
+                    : 'text-muted-foreground'
+                )}
+              >
+                <span
+                  className={cn(
+                    'h-1.5 w-1.5 rounded-full',
+                    automation.status === 'active' ? 'bg-emerald-500' : 'bg-border'
+                  )}
+                />
+                {automation.status === 'active' ? 'Actif' : 'Inactif'}
+              </span>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <CardDescription className="mb-4">
-            {automation.description}
-          </CardDescription>
-          {stats && (
-            <div className="rounded-lg bg-muted p-3">
-              <div className="text-xs text-muted-foreground">Cette semaine</div>
-              <div className="mt-1 text-2xl font-bold">
-                {formatNumber(stats.emailsSent)}
-              </div>
-              <div className="text-xs text-muted-foreground">emails envoyés</div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Description */}
+        <p className="mb-4 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+          {automation.description}
+        </p>
+
+        {/* Stats */}
+        {stats && (
+          <div className="rounded-md border border-border bg-secondary/60 px-3 py-2.5">
+            <p className="label-caps text-muted-foreground mb-0.5">Cette semaine</p>
+            <p className="text-lg font-bold text-foreground leading-tight">
+              {formatNumber(stats.emailsSent)}
+              <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                emails envoyés
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
     </Link>
   );
 }
