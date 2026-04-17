@@ -101,6 +101,7 @@ services:
       - DATABASE_URL=postgresql://regista:dm03c%26DNHMsIuQlD@regista-postgres:5432/regista_agency
       - NEXTAUTH_URL=https://demo.regista-agency.com
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_TRUST_HOST=true
     networks:
       - regista-network
       - traefik-proxy
@@ -126,3 +127,4 @@ networks:
   regista-network:
   traefik-proxy:
     external: true
+    name: root_traefik-proxy
