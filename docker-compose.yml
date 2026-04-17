@@ -1,73 +1,128 @@
 services:
-  # PostgreSQL Database
+  traefik:
+    image: traefik
+    command:
+      - --api=true
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.mytlschallenge.acme.tlschallenge=true
+      - --certificatesresolvers.mytlschallenge.acme.email=${SSL_EMAIL}
+      - --certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - traefik_data:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik-proxy
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: always
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.n8n.tls=true
+      - traefik.http.routers.n8n.entrypoints=web,websecure
+      - traefik.http.routers.n8n.tls.certresolver=mytlschallenge
+      - traefik.http.middlewares.n8n.headers.SSLRedirect=true
+      - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
+      - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
+      - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
+      - traefik.http.middlewares.n8n.headers.SSLHost=${DOMAIN_NAME}
+      - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.n8n.headers.STSPreload=true
+      - traefik.http.routers.n8n.middlewares=n8n@docker
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - /local-files:/files
+    networks:
+      - traefik-proxy
+
   postgres:
-    image: postgres:16-alpine
-    container_name: regista-postgres
+    image: pgvector/pgvector:pg17
+    container_name: postgres_pgvector
+    restart: always
+    environment:
+      POSTGRES_USER: Abdel
+      POSTGRES_PASSWORD: TestOrra
+      POSTGRES_DB: n8n_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_storage:/var/lib/postgresql/data
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_storage:/root/.ollama
+
+  regista-postgres:
+    image: postgres:16-alpine
+    container_name: regista-postgres-prod
+    restart: always
     environment:
       POSTGRES_USER: regista
-      POSTGRES_PASSWORD: regista123
+      POSTGRES_PASSWORD: "dm03c&DNHMsIuQlD"
       POSTGRES_DB: regista_agency
-    ports:
-      - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - regista_postgres_data:/var/lib/postgresql/data
     networks:
       - regista-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U regista -d regista_agency"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Next.js Application
-  nextjs:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
-    container_name: regista-nextjs
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://regista:regista123@postgres:5432/regista_agency
-      - NEXTAUTH_SECRET=regista-secret-key-change-in-production-min-32-chars
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXT_PUBLIC_APP_NAME=Regista Agency
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
-    ports:
-      - '3000:3000'
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+  regista-nextjs:
+    image: root-regista-nextjs
+    container_name: regista-nextjs-prod
+    restart: always
     depends_on:
-      postgres:
-        condition: service_healthy
+      - regista-postgres
+    environment:
+      - DATABASE_URL=postgresql://regista:dm03c%26DNHMsIuQlD@regista-postgres:5432/regista_agency
+      - NEXTAUTH_URL=https://demo.regista-agency.com
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
     networks:
       - regista-network
-    command: sh -c "npx prisma migrate deploy && npm run dev"
-
-  # pgAdmin (Optional - Web UI for PostgreSQL)
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: regista-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@regista-agency.fr
-      PGADMIN_DEFAULT_PASSWORD: admin123
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    ports:
-      - '5050:80'
-    depends_on:
-      - postgres
-    networks:
-      - regista-network
+      - traefik-proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=root_traefik-proxy
+      - traefik.http.routers.regista.rule=Host(`demo.regista-agency.com`)
+      - traefik.http.routers.regista.tls=true
+      - traefik.http.routers.regista.entrypoints=websecure
+      - traefik.http.routers.regista.tls.certresolver=mytlschallenge
+      - traefik.http.services.regista.loadbalancer.server.port=3000
 
 volumes:
-  postgres_data:
-    driver: local
+  traefik_data:
+    external: true
+  n8n_data:
+    external: true
+  postgres_storage:
+  ollama_storage:
+  regista_postgres_data:
 
 networks:
   regista-network:
-    driver: bridge
+  traefik-proxy:
+    external: true
