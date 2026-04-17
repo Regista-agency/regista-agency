@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Plus, Activity } from 'lucide-react';
+import { Check, Plus, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MarketplaceCardProps {
@@ -25,7 +24,7 @@ export function MarketplaceCard({ template }: MarketplaceCardProps) {
 
   const handleAdd = async () => {
     if (isAdded) return;
-    
+
     setIsAdding(true);
     try {
       const response = await fetch('/api/marketplace/add', {
@@ -39,58 +38,64 @@ export function MarketplaceCard({ template }: MarketplaceCardProps) {
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || 'Erreur lors de l\'ajout');
+        alert(data.error || "Erreur lors de l'ajout");
       }
-    } catch (error) {
-      alert('Erreur lors de l\'ajout');
+    } catch {
+      alert("Erreur lors de l'ajout");
     } finally {
       setIsAdding(false);
     }
   };
 
   return (
-    <Card className={cn(
-      'transition-all hover:shadow-md',
-      isAdded && 'border-green-200 bg-green-50/50'
-    )}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Activity className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">{template.name}</CardTitle>
-              <span className="text-xs text-muted-foreground capitalize">
-                {template.category}
-              </span>
-            </div>
-          </div>
+    <div
+      className={cn(
+        'flex flex-col rounded-lg border bg-card p-5 transition-all',
+        isAdded
+          ? 'border-primary/25 bg-accent/40'
+          : 'border-border hover:border-primary/30 hover:shadow-sm'
+      )}
+    >
+      {/* Header */}
+      <div className="mb-3 flex items-start gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent">
+          <Zap className="h-4 w-4 text-primary" strokeWidth={2} />
         </div>
-      </CardHeader>
-      <CardContent>
-        <CardDescription className="mb-4">
-          {template.description}
-        </CardDescription>
-        <Button
-          onClick={handleAdd}
-          disabled={isAdding || isAdded}
-          className="w-full"
-          variant={isAdded ? 'secondary' : 'default'}
-        >
-          {isAdded ? (
-            <>
-              <Check className="mr-2 h-4 w-4" />
-              Ajoutée
-            </>
-          ) : (
-            <>
-              <Plus className="mr-2 h-4 w-4" />
-              {isAdding ? 'Ajout en cours...' : 'Ajouter'}
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+        <div>
+          <h3 className="text-sm font-semibold text-foreground leading-tight">
+            {template.name}
+          </h3>
+          <span className="label-caps text-muted-foreground capitalize">
+            {template.category}
+          </span>
+        </div>
+      </div>
+
+      {/* Description */}
+      <p className="mb-4 flex-1 text-sm text-muted-foreground leading-relaxed line-clamp-3">
+        {template.description}
+      </p>
+
+      {/* Action */}
+      <Button
+        onClick={handleAdd}
+        disabled={isAdding || isAdded}
+        variant={isAdded ? 'secondary' : 'default'}
+        size="sm"
+        className="w-full"
+      >
+        {isAdded ? (
+          <>
+            <Check className="mr-1.5 h-3.5 w-3.5" />
+            Ajoutée
+          </>
+        ) : (
+          <>
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            {isAdding ? 'Ajout…' : 'Ajouter'}
+          </>
+        )}
+      </Button>
+    </div>
   );
 }
