@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { AutomationCard } from '@/components/AutomationCard';
 import { KPICard } from '@/components/KPICard';
-import { Activity, Mail, TrendingUp, DollarSign } from 'lucide-react';
+import { Zap, Mail, TrendingUp, DollarSign } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 
 export default async function DashboardPage() {
@@ -18,7 +18,6 @@ export default async function DashboardPage() {
     orderBy: { createdAt: 'desc' },
   });
 
-  // Calculate global stats (last 7 days)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -55,21 +54,25 @@ export default async function DashboardPage() {
   );
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-8">
+
+      {/* En-tête */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Dashboard
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Vue d'ensemble de vos automatisations
         </p>
       </div>
 
       {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <KPICard
           title="Automatisations"
           value={automations.length}
           subtitle={`${automations.filter((a) => a.status === 'active').length} actives`}
-          icon={Activity}
+          icon={Zap}
         />
         <KPICard
           title="Emails envoyés"
@@ -91,29 +94,36 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Automations List */}
+      {/* Liste des automatisations */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Mes Automatisations</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {automationsWithStats.map((automation) => (
-            <AutomationCard
-              key={automation._id}
-              automation={automation}
-              stats={automation.stats}
-            />
-          ))}
-        </div>
-      </div>
+        <h2 className="mb-4 text-base font-semibold text-foreground">
+          Mes automatisations
+        </h2>
 
-      {automations.length === 0 && (
-        <div className="text-center py-12">
-          <Activity className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">Aucune automatisation</h3>
-          <p className="text-muted-foreground mt-2">
-            Vos automatisations apparaîtront ici
-          </p>
-        </div>
-      )}
+        {automationsWithStats.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {automationsWithStats.map((automation) => (
+              <AutomationCard
+                key={automation._id}
+                automation={automation}
+                stats={automation.stats}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
+              <Zap className="h-5 w-5 text-primary" strokeWidth={2} />
+            </div>
+            <h3 className="text-sm font-semibold text-foreground">
+              Aucune automatisation
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Vos automatisations apparaîtront ici
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
