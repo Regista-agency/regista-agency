@@ -7,8 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,7 +34,7 @@ export default function LoginPage() {
         router.push('/dashboard');
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       setError('Une erreur est survenue');
     } finally {
       setLoading(false);
@@ -43,22 +42,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Activity className="h-7 w-7" />
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm">
+
+        {/* Logo */}
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+            <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
           <div>
-            <CardTitle className="text-2xl">Regista Agency</CardTitle>
-            <CardDescription className="mt-2">
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
+              Regista Agency
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               Connectez-vous à votre espace client
-            </CardDescription>
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+
+        {/* Formulaire */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -70,7 +75,8 @@ export default function LoginPage() {
                 disabled={loading}
               />
             </div>
-            <div className="space-y-2">
+
+            <div className="space-y-1.5">
               <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
@@ -81,23 +87,29 @@ export default function LoginPage() {
                 disabled={loading}
               />
             </div>
+
             {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+              <div className="rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-600 border border-red-100">
                 {error}
               </div>
             )}
+
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? 'Connexion…' : 'Se connecter'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            Pas encore de compte?{' '}
-            <Link href="/signup" className="font-medium text-primary hover:underline">
-              Créer un compte
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        <p className="mt-5 text-center text-sm text-muted-foreground">
+          Pas encore de compte ?{' '}
+          <Link
+            href="/signup"
+            className="font-medium text-primary hover:underline underline-offset-4"
+          >
+            Créer un compte
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
