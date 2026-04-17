@@ -1,25 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors */
-  --color-background: #ffffff;
-  --color-foreground: #09090b;
-  --color-card: #ffffff;
-  --color-card-foreground: #09090b;
-  --color-primary: #3b82f6;
-  --color-primary-foreground: #f8fafc;
-  --color-secondary: #f1f5f9;
-  --color-secondary-foreground: #0f172a;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-accent: #f1f5f9;
-  --color-accent-foreground: #0f172a;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #f8fafc;
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
-  --color-ring: #3b82f6;
-  
-  /* Radius */
+  /* ── Regista Brand Palette ── */
+  --color-gold:         #C49A3C;
+  --color-charcoal:     #1E2025;
+  --color-charcoal-mid: #2D3139;
+  --color-off-white:    #FAFAFA;
+  --color-slate-brand:  #9AA0AC;
+
+  /* ── Semantic tokens (light mode) ── */
+  --color-background:          #FAFAFA;
+  --color-foreground:          #1E2025;
+
+  --color-card:                #ffffff;
+  --color-card-foreground:     #1E2025;
+
+  --color-primary:             #C49A3C;
+  --color-primary-foreground:  #ffffff;
+
+  --color-secondary:           #F5F5F6;
+  --color-secondary-foreground:#1E2025;
+
+  --color-muted:               #F5F5F6;
+  --color-muted-foreground:    #9AA0AC;
+
+  --color-accent:              #FBF6EC;
+  --color-accent-foreground:   #1E2025;
+
+  --color-destructive:         #ef4444;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border:              #E8E8EA;
+  --color-input:               #E8E8EA;
+  --color-ring:                #C49A3C;
+
+  /* ── Radius ── */
   --radius: 0.5rem;
+
+  /* ── Font ── */
+  --font-sans: 'Manrope', system-ui, sans-serif;
+}
+
+/* ── Typography utilities ── */
+@layer utilities {
+  .label-caps {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
 }
