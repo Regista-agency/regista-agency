@@ -53,4 +53,4 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 USER nextjs
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["node", "server.js", "--hostname", "0.0.0.0", "--port", "3000"]
