@@ -92,7 +92,10 @@ services:
       - regista-network
 
   regista-nextjs:
-    image: root-regista-nextjs
+    build:
+      context: ./regista-agency
+      dockerfile: Dockerfile
+      target: production
     container_name: regista-nextjs-prod
     restart: always
     depends_on:
