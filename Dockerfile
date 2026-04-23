@@ -43,14 +43,14 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+# Copier toute l'app buildée
+COPY --from=builder /app ./
+
+# Important : remettre les bons droits
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
+
 EXPOSE 3000
 
-CMD ["node", "server.js", "--hostname", "0.0.0.0", "--port", "3000"]
+CMD ["npm", "start"]
