@@ -41,6 +41,25 @@
   --font-sans: 'Manrope', system-ui, sans-serif;
 }
 
+/* ── Dark mode overrides ── */
+.dark {
+  --color-background:           #111318;
+  --color-foreground:           #EDEDF0;
+  --color-card:                 #1A1D24;
+  --color-card-foreground:      #EDEDF0;
+  --color-primary:              #D4AA52;
+  --color-primary-foreground:   #1E2025;
+  --color-secondary:            #1E2128;
+  --color-secondary-foreground: #EDEDF0;
+  --color-muted:                #1E2128;
+  --color-muted-foreground:     #5A6070;
+  --color-accent:               rgba(212, 170, 82, 0.12);
+  --color-accent-foreground:    #EDEDF0;
+  --color-border:               #252830;
+  --color-input:                #252830;
+  --color-ring:                 #D4AA52;
+}
+
 /* ── Typography utilities ── */
 @layer utilities {
   .label-caps {
