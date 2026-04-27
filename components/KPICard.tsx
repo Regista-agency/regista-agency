@@ -1,5 +1,6 @@
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SparkLine } from './SparkLine';
 
 interface KPICardProps {
   title: string;
@@ -10,14 +11,20 @@ interface KPICardProps {
     value: number;
     positive: boolean;
   };
+  sparkData?: number[];
   className?: string;
 }
 
-export function KPICard({ title, value, subtitle, icon: Icon, trend, className }: KPICardProps) {
+export function KPICard({ title, value, subtitle, icon: Icon, trend, sparkData, className }: KPICardProps) {
+  const sparkColor = trend?.positive === false ? '#ef4444' : '#10b981';
+
   return (
     <div
       className={cn(
-        'rounded-lg border border-border bg-card px-5 py-4',
+        'rounded-lg border bg-card px-5 py-4 transition-shadow hover:shadow-md',
+        trend?.positive === true && 'border-emerald-500/30',
+        trend?.positive === false && 'border-red-500/30',
+        !trend && 'border-border',
         className
       )}
     >
@@ -36,19 +43,29 @@ export function KPICard({ title, value, subtitle, icon: Icon, trend, className }
         <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
       )}
 
-      {trend && (
-        <div className="mt-2 flex items-center gap-1 text-xs">
+      <div className="mt-3 flex items-end justify-between gap-2">
+        {trend ? (
           <span
             className={cn(
-              'font-semibold',
-              trend.positive ? 'text-emerald-600' : 'text-red-500'
+              'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
+              trend.positive
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                : 'bg-red-500/15 text-red-600 dark:text-red-400'
             )}
           >
+            {trend.positive
+              ? <TrendingUp className="h-3 w-3" strokeWidth={2.5} />
+              : <TrendingDown className="h-3 w-3" strokeWidth={2.5} />
+            }
             {trend.positive ? '+' : ''}{trend.value}%
           </span>
-          <span className="text-muted-foreground">vs semaine dernière</span>
-        </div>
-      )}
+        ) : (
+          <div />
+        )}
+        {sparkData && sparkData.length >= 2 && (
+          <SparkLine data={sparkData} color={sparkColor} width={72} height={28} fill />
+        )}
+      </div>
     </div>
   );
 }

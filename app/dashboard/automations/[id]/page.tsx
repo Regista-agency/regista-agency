@@ -3,10 +3,15 @@ import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { KPICard } from '@/components/KPICard';
 import { MetricsChart } from '@/components/Charts';
+import { ActivityFeed } from '@/components/ActivityFeed';
+import type { ActivityItem } from '@/components/ActivityFeed';
+import { DropZone } from '@/components/DropZone';
 import { Mail, TrendingUp, DollarSign, Percent, ArrowLeft, Settings } from 'lucide-react';
-import { formatCurrency, formatNumber, formatDate } from '@/lib/utils';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import path from 'path';
+import { readdir, stat } from 'fs/promises';
 
 export default async function AutomationDetailPage({
   params,
@@ -32,17 +37,22 @@ export default async function AutomationDetailPage({
     notFound();
   }
 
-  // Get metrics for last 7 days
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  // Get metrics for last 7 days and previous 7 days (for trend)
+  const now = new Date();
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(now.getDate() - 7);
+  const fourteenDaysAgo = new Date(now);
+  fourteenDaysAgo.setDate(now.getDate() - 14);
 
-  const metrics = await prisma.metric.findMany({
-    where: {
-      automationId: automation.id,
-      date: { gte: sevenDaysAgo },
-    },
-    orderBy: { date: 'asc' },
-  });
+  const [metrics, prevMetrics] = await Promise.all([
+    prisma.metric.findMany({
+      where: { automationId: automation.id, date: { gte: sevenDaysAgo } },
+      orderBy: { date: 'asc' },
+    }),
+    prisma.metric.findMany({
+      where: { automationId: automation.id, date: { gte: fourteenDaysAgo, lt: sevenDaysAgo } },
+    }),
+  ]);
 
   // Calculate totals
   const totalEmailsSent = metrics.reduce((sum, m) => sum + m.emailsSent, 0);
@@ -52,6 +62,36 @@ export default async function AutomationDetailPage({
     totalEmailsSent > 0
       ? ((totalConversions / totalEmailsSent) * 100).toFixed(2)
       : '0';
+
+  const prevEmailsSent = prevMetrics.reduce((sum, m) => sum + m.emailsSent, 0);
+  const prevConversions = prevMetrics.reduce((sum, m) => sum + m.conversions, 0);
+  const prevRevenue = prevMetrics.reduce((sum, m) => sum + m.revenue, 0);
+  const prevConversionRate = prevEmailsSent > 0 ? (prevConversions / prevEmailsSent) * 100 : 0;
+
+  function calcTrend(current: number, previous: number) {
+    if (previous === 0) return undefined;
+    const pct = Math.round(((current - previous) / previous) * 100);
+    return { value: Math.abs(pct), positive: pct >= 0 };
+  }
+
+  // Daily sparklines
+  const dailyEmails: number[] = [];
+  const dailyConversions: number[] = [];
+  const dailyRevenue: number[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const dayStart = new Date(now);
+    dayStart.setDate(now.getDate() - i);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setHours(23, 59, 59, 999);
+    const day = metrics.filter((m) => {
+      const d = new Date(m.date);
+      return d >= dayStart && d <= dayEnd;
+    });
+    dailyEmails.push(day.reduce((s, m) => s + m.emailsSent, 0));
+    dailyConversions.push(day.reduce((s, m) => s + m.conversions, 0));
+    dailyRevenue.push(day.reduce((s, m) => s + m.revenue, 0));
+  }
 
   // Prepare chart data
   const labels = metrics.map((m) =>
@@ -67,11 +107,16 @@ export default async function AutomationDetailPage({
       {
         label: 'Emails envoyés',
         data: metrics.map((m) => m.emailsSent),
-        borderColor: 'rgb(59, 130, 246)',
+        borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
       },
     ],
   };
+
+  // Normalize revenue to the same visual scale as conversions for the combined chart
+  const maxConv = Math.max(...metrics.map((m) => m.conversions), 1);
+  const maxRev = Math.max(...metrics.map((m) => m.revenue), 1);
+  const revenueScale = maxRev / maxConv;
 
   const conversionsChartData = {
     labels,
@@ -79,17 +124,71 @@ export default async function AutomationDetailPage({
       {
         label: 'Conversions',
         data: metrics.map((m) => m.conversions),
-        borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
       },
       {
-        label: 'Chiffre d\'affaires (€)',
-        data: metrics.map((m) => m.revenue),
-        borderColor: 'rgb(168, 85, 247)',
-        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+        label: 'CA (€)',
+        data: metrics.map((m) => m.revenue / revenueScale),
+        borderColor: '#C49A3C',
+        backgroundColor: 'rgba(196, 154, 60, 0.1)',
+        format: 'currency' as const,
+        scale: revenueScale,
       },
     ],
   };
+
+  // Derive ActivityItem[] from this automation's recent metrics
+  const activityItems: ActivityItem[] = metrics
+    .slice()
+    .reverse()
+    .flatMap((m): ActivityItem[] => {
+      const items: ActivityItem[] = [];
+      if (m.conversions > 0) {
+        items.push({
+          id: m.id + '_conv',
+          type: 'conversion',
+          text: `${m.conversions} devis signé${m.conversions > 1 ? 's' : ''}`,
+          automationName: automation.name,
+          date: m.date,
+          amount: m.revenue > 0 ? m.revenue : undefined,
+        });
+      } else if (m.revenue > 0) {
+        items.push({
+          id: m.id + '_rev',
+          type: 'revenue',
+          text: 'CA généré',
+          automationName: automation.name,
+          date: m.date,
+          amount: m.revenue,
+        });
+      } else if (m.emailsSent > 0) {
+        items.push({
+          id: m.id + '_email',
+          type: 'email',
+          text: `${m.emailsSent} emails envoyés`,
+          automationName: automation.name,
+          date: m.date,
+        });
+      }
+      return items;
+    })
+    .slice(0, 8);
+
+  // List already-uploaded files for this automation
+  const uploadsDir = path.join(process.cwd(), 'uploads', id);
+  let existingFiles: { name: string; size: number }[] = [];
+  try {
+    const names = await readdir(uploadsDir);
+    existingFiles = await Promise.all(
+      names.map(async (name) => {
+        const s = await stat(path.join(uploadsDir, name));
+        return { name, size: s.size };
+      })
+    );
+  } catch {
+    // no uploads yet
+  }
 
   return (
     <div className="p-8">
@@ -140,24 +239,31 @@ export default async function AutomationDetailPage({
           value={formatNumber(totalEmailsSent)}
           subtitle="7 derniers jours"
           icon={Mail}
+          trend={calcTrend(totalEmailsSent, prevEmailsSent)}
+          sparkData={dailyEmails}
         />
         <KPICard
           title="Conversions"
           value={formatNumber(totalConversions)}
           subtitle="Devis signés"
           icon={TrendingUp}
+          trend={calcTrend(totalConversions, prevConversions)}
+          sparkData={dailyConversions}
         />
         <KPICard
           title="Chiffre d'affaires"
           value={formatCurrency(totalRevenue)}
           subtitle="Généré"
           icon={DollarSign}
+          trend={calcTrend(totalRevenue, prevRevenue)}
+          sparkData={dailyRevenue}
         />
         <KPICard
           title="Taux de conversion"
           value={`${conversionRate}%`}
           subtitle="Conversions / Emails"
           icon={Percent}
+          trend={calcTrend(parseFloat(conversionRate), prevConversionRate)}
         />
       </div>
 
@@ -173,42 +279,24 @@ export default async function AutomationDetailPage({
         />
       </div>
 
-      {/* Recent Activity */}
-      <div className="rounded-lg border bg-card">
-        <div className="border-b p-6">
-          <h2 className="text-xl font-semibold">Activité récente</h2>
+      {/* Bottom row: activity feed + file import */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+
+        {/* Activité récente */}
+        <div className="rounded-lg border border-border bg-card px-5 py-4">
+          <h2 className="mb-4 text-sm font-semibold text-foreground">Activité récente</h2>
+          <ActivityFeed items={activityItems} />
         </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            {metrics.slice(-5).reverse().map((metric, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
-              >
-                <div>
-                  <div className="font-medium">
-                    {formatDate(metric.date)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {metric.emailsSent} emails • {metric.conversions}{' '}
-                    conversions
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-semibold">
-                    {formatCurrency(metric.revenue)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">CA généré</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {metrics.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              Aucune donnée disponible pour les 7 derniers jours
-            </div>
-          )}
+
+        {/* Import de données */}
+        <div className="rounded-lg border border-border bg-card px-5 py-4">
+          <h2 className="mb-1 text-sm font-semibold text-foreground">Import de données</h2>
+          <p className="mb-4 text-xs text-muted-foreground">
+            Importez un modèle de facture pour l&apos;utiliser dans ce workflow
+          </p>
+          <DropZone automationId={id} existingFiles={existingFiles} />
         </div>
+
       </div>
     </div>
   );

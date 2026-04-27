@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { LayoutDashboard, LogOut, Zap, ShoppingBag, Settings } from 'lucide-react';
+import { LayoutDashboard, LogOut, Zap, ShoppingBag, Settings, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from './ThemeProvider';
 
 interface SidebarProps {
   automations: Array<{
@@ -21,6 +22,7 @@ const navLinks = [
 
 export function Sidebar({ automations }: SidebarProps) {
   const pathname = usePathname();
+  const { dark, toggle } = useTheme();
 
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-border bg-card">
@@ -102,6 +104,35 @@ export function Sidebar({ automations }: SidebarProps) {
 
       {/* Pied de sidebar */}
       <div className="border-t border-border px-3 py-3 space-y-0.5">
+        {/* Dark mode toggle */}
+        <button
+          onClick={toggle}
+          className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <span className="flex items-center gap-2.5">
+            {dark ? (
+              <Sun className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+            ) : (
+              <Moon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+            )}
+            {dark ? 'Mode clair' : 'Mode sombre'}
+          </span>
+          {/* Toggle track */}
+          <span
+            className={cn(
+              'relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors',
+              dark ? 'bg-primary' : 'bg-border'
+            )}
+          >
+            <span
+              className={cn(
+                'absolute h-3.5 w-3.5 rounded-full bg-white shadow transition-transform',
+                dark ? 'translate-x-4' : 'translate-x-0.5'
+              )}
+            />
+          </span>
+        </button>
+
         <Link
           href="/dashboard/settings"
           className={cn(
