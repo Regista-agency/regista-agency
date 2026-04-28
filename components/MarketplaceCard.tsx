@@ -79,7 +79,7 @@ export function MarketplaceCard({ template }: MarketplaceCardProps) {
       {!template.soon && !isAdded && (
         <span
           className="pointer-events-none absolute inset-0 rounded-xl opacity-0 ring-1 ring-inset transition-opacity duration-200 group-hover:opacity-100"
-          style={{ ringColor: 'var(--color-primary)', boxShadow: `inset 0 0 0 1px var(--color-primary, #C49A3C)` }}
+          style={{ boxShadow: `inset 0 0 0 1px var(--color-primary, #C49A3C)` }}
         />
       )}
 
