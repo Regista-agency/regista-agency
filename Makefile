@@ -1,8 +1,8 @@
 .PHONY: help dev up down logs seed clean rebuild restart shell mongo-shell test
 
 # Variables
-COMPOSE = docker-compose
-COMPOSE_PROD = docker-compose -f docker-compose.prod.yml
+COMPOSE = docker compose
+COMPOSE_PROD = docker compose -f docker-compose.prod.yml
 
 help: ## Afficher l'aide
 	@echo "Regista Agency - Commandes Docker"
