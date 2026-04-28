@@ -71,7 +71,7 @@ services:
 
   ollama:
     image: ollama/ollama:latest
-    container_name: ollama
+    container_name: ollama-regista
     restart: unless-stopped
     ports:
       - "127.0.0.1:11434:11434"
