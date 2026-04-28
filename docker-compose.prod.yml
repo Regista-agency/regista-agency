@@ -126,3 +126,4 @@ networks:
   regista-network:
   traefik-proxy:
     external: true
+    name: root_traefik-proxy
